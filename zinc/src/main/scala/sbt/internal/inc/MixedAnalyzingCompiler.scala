@@ -165,8 +165,8 @@ object MixedAnalyzingCompiler {
   def makeConfig(
       scalac: xsbti.compile.ScalaCompiler,
       javac: xsbti.compile.JavaCompiler,
-      sources: Seq[File],
-      classpath: Seq[File],
+      sources: Array[File],
+      classpath: Array[File],
       output: Output,
       cache: GlobalsCache,
       progress: Option[CompileProgress] = None,
@@ -181,9 +181,16 @@ object MixedAnalyzingCompiler {
       incrementalCompilerOptions: IncOptions,
       extra: List[(String, String)]
   ): CompileConfiguration = {
-    val classpathHash = classpath map { x =>
+    val lookup = incrementalCompilerOptions.externalHooks().getExternalLookup
+    def doHash = classpath map { x =>
       FileHash.of(x, Stamper.forHash(x).hashCode)
     }
+    val classpathHash =
+      if (lookup.isPresent) {
+        val computed = lookup.get().hashClasspath(classpath)
+        if (computed.isPresent) computed.get() else doHash
+      } else doHash
+
     val compileSetup = MiniSetup.of(
       output,
       MiniOptions.of(

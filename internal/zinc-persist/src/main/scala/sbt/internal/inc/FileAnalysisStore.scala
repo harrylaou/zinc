@@ -56,10 +56,12 @@ object FileAnalysisStore {
           lookupEntry(inputStream, analysisFileName)
           val reader = CodedInputStream.newInstance(inputStream)
           val (analysis, miniSetup) = format.read(reader)
-          val analysisWithAPIs = allCatch.opt {
+`          def readAPIs = allCatch.opt {
             lookupEntry(inputStream, companionsFileName)
             format.readAPIs(reader, analysis)
           }
+
+          val analysisWithAPIs = if (miniSetup.storeApis) readAPIs else Some(analysis)
           analysisWithAPIs.map(analysis => AnalysisContents.create(analysis, miniSetup))
         }
       }

@@ -89,4 +89,6 @@ trait ExternalLookup extends ExternalHooks.Lookup {
     import scala.collection.JavaConverters._
     shouldDoIncrementalCompilation(changedClasses.iterator().asScala.toSet, previousAnalysis)
   }
+
+  override def hashClasspath(classpath: Array[File]): Optional[Array[FileHash]] = Optional.empty()
 }
